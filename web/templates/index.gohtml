@@ -1,0 +1,212 @@
+{{define "index.gohtml"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Audio Chunker</title>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              input: "hsl(var(--input))",
+              ring: "hsl(var(--ring))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              primary: {
+                DEFAULT: "hsl(var(--primary))",
+                foreground: "hsl(var(--primary-foreground))",
+              },
+              secondary: {
+                DEFAULT: "hsl(var(--secondary))",
+                foreground: "hsl(var(--secondary-foreground))",
+              },
+              destructive: {
+                DEFAULT: "hsl(var(--destructive))",
+                foreground: "hsl(var(--destructive-foreground))",
+              },
+              muted: {
+                DEFAULT: "hsl(var(--muted))",
+                foreground: "hsl(var(--muted-foreground))",
+              },
+              accent: {
+                DEFAULT: "hsl(var(--accent))",
+                foreground: "hsl(var(--accent-foreground))",
+              },
+              popover: {
+                DEFAULT: "hsl(var(--popover))",
+                foreground: "hsl(var(--popover-foreground))",
+              },
+              card: {
+                DEFAULT: "hsl(var(--card))",
+                foreground: "hsl(var(--card-foreground))",
+              },
+            },
+            borderRadius: {
+              lg: "var(--radius)",
+              md: "calc(var(--radius) - 2px)",
+              sm: "calc(var(--radius) - 4px)",
+            },
+          },
+        },
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <style>
+      :root {
+        --background: 0 0% 100%;
+        --foreground: 222.2 47.4% 11.2%;
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222.2 47.4% 11.2%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 47.4% 11.2%;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --primary: 222.2 47.4% 11.2%;
+        --primary-foreground: 210 40% 98%;
+        --secondary: 210 40% 96.1%;
+        --secondary-foreground: 222.2 47.4% 11.2%;
+        --accent: 210 40% 96.1%;
+        --accent-foreground: 222.2 47.4% 11.2%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
+        --ring: 215 20.2% 65.1%;
+        --radius: 0.75rem;
+      }
+
+      * {
+        border-color: hsl(var(--border));
+      }
+    </style>
+</head>
+<body class="bg-background text-foreground min-h-screen font-sans">
+    <div class="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-10 px-4 py-10">
+        <header class="space-y-2">
+            <h1 class="text-3xl font-semibold tracking-tight">Audio Chunker</h1>
+            <p class="text-sm text-muted-foreground">Upload a video, split it into audio chunks, and review or copy each chunk as needed.</p>
+            {{if .Flash}}
+            <div class="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">{{.Flash}}</div>
+            {{end}}
+            {{if .Error}}
+            <div class="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">{{.Error}}</div>
+            {{end}}
+        </header>
+
+        <div class="grid gap-8 lg:grid-cols-[minmax(0,360px),1fr]">
+            <section class="rounded-lg border bg-card text-card-foreground shadow-sm">
+                <div class="space-y-6 p-6">
+                    <div class="space-y-1">
+                        <h2 class="text-xl font-semibold">New Upload</h2>
+                        <p class="text-sm text-muted-foreground">Configure your run and start processing.</p>
+                    </div>
+                    <form action="/upload" method="post" enctype="multipart/form-data" class="space-y-4">
+                        <div class="space-y-2">
+                            <label for="video" class="text-sm font-medium leading-none">Video file</label>
+                            <input id="video" name="video" type="file" accept="video/*" required
+                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:mr-4 file:rounded-md file:border-0 file:bg-secondary file:px-4 file:py-2 file:text-sm file:font-medium file:text-secondary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="chunk_value" class="text-sm font-medium leading-none">Chunk duration</label>
+                            <div class="flex flex-col gap-2 sm:flex-row">
+                                <input id="chunk_value" name="chunk_value" type="number" min="1" value="{{.ChunkValue}}"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" />
+                                <select id="chunk_unit" name="chunk_unit"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:w-40">
+                                    {{range .ChunkUnits}}
+                                        <option value="{{.Value}}" {{if eq $.ChunkUnit .Value}}selected{{end}}>{{.Label}}</option>
+                                    {{end}}
+                                </select>
+                            </div>
+                            <p class="text-xs text-muted-foreground">We'll split the audio every {{.HumanChunk}} by default. Shorter durations create more, smaller chunks for finer review.</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label class="flex items-center gap-2 text-sm font-medium leading-none">
+                                <input id="transcribe" name="transcribe" type="checkbox" value="on" {{if not .WhisperActive}}disabled{{end}}
+                                    class="h-4 w-4 rounded border border-input text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background" />
+                                Attempt transcription via <code class="rounded bg-muted px-1.5 py-0.5 text-xs">WHISPER_BIN</code>
+                            </label>
+                            {{if not .WhisperActive}}
+                            <p class="text-xs text-muted-foreground">Set <code>WHISPER_BIN</code> and optional <code>WHISPER_ARGS</code> to enable automated transcripts.</p>
+                            {{end}}
+                        </div>
+
+                        <div class="rounded-md border border-dashed border-muted bg-muted/40 p-3 text-xs text-muted-foreground">
+                            {{if .Base64Enabled}}
+                            Base64 dumps for every chunk are generated automatically for easy copy &amp; paste.
+                            {{else}}
+                            Base64 dumps are disabled via the <code>-no-base64</code> flag.
+                            {{end}}
+                        </div>
+
+                        <button type="submit"
+                            class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+                            Start processing
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <section class="flex flex-col gap-4 rounded-lg border bg-card text-card-foreground shadow-sm">
+                <div class="border-b p-6">
+                    <h2 class="text-xl font-semibold">Previous jobs</h2>
+                    <p class="text-sm text-muted-foreground">Review completed runs or check on jobs still processing.</p>
+                </div>
+                <div class="flex-1 overflow-x-auto p-6 pt-0">
+                    {{if not .Jobs}}
+                        <div class="rounded-lg border border-dashed border-muted bg-background p-6 text-sm text-muted-foreground">
+                            No jobs yet. Upload a video to get started.
+                        </div>
+                    {{else}}
+                        <table class="w-full caption-bottom text-sm">
+                            <thead class="[&_th]:h-10 [&_th]:px-3 [&_th]:text-left [&_th]:align-middle">
+                                <tr>
+                                    <th>Created</th>
+                                    <th>File</th>
+                                    <th>Status</th>
+                                    <th>Chunks</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="[&_td]:border-t [&_td]:border-border [&_td]:px-3 [&_td]:py-4">
+                                {{range .Jobs}}
+                                <tr class="hover:bg-muted/50">
+                                    <td class="whitespace-nowrap text-muted-foreground">{{.CreatedAt.Format "2006-01-02 15:04"}}</td>
+                                    <td class="font-medium">{{.OriginalFileName}}</td>
+                                    <td class="whitespace-nowrap">
+                                        <span class="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground">{{.Status}}</span>
+                                        {{if .TranscriptionRequested}}
+                                            <span class="ml-2 inline-flex items-center rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">transcribe</span>
+                                        {{end}}
+                                    </td>
+                                    <td>{{len .Chunks}}</td>
+                                    <td class="text-right">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <a href="/jobs/{{.ID}}" class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">View</a>
+                                            <form action="/jobs/{{.ID}}/delete" method="post" class="inline"
+                                                onsubmit="return confirm('Delete this job and all generated files?')">
+                                                <button type="submit"
+                                                    class="inline-flex h-9 items-center justify-center rounded-md border border-destructive/40 bg-destructive/10 px-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background {{if eq .Status "processing"}}opacity-50 cursor-not-allowed hover:bg-destructive/80 hover:text-destructive{{end}}"
+                                                    {{if eq .Status "processing"}}disabled aria-disabled="true" title="Job is still processing"{{end}}>
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    {{end}}
+                </div>
+            </section>
+        </div>
+    </div>
+</body>
+</html>
+{{end}}

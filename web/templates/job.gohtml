@@ -1,0 +1,258 @@
+{{define "job.gohtml"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Job {{.Job.ID}}</title>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              border: "hsl(var(--border))",
+              input: "hsl(var(--input))",
+              ring: "hsl(var(--ring))",
+              background: "hsl(var(--background))",
+              foreground: "hsl(var(--foreground))",
+              primary: {
+                DEFAULT: "hsl(var(--primary))",
+                foreground: "hsl(var(--primary-foreground))",
+              },
+              secondary: {
+                DEFAULT: "hsl(var(--secondary))",
+                foreground: "hsl(var(--secondary-foreground))",
+              },
+              destructive: {
+                DEFAULT: "hsl(var(--destructive))",
+                foreground: "hsl(var(--destructive-foreground))",
+              },
+              muted: {
+                DEFAULT: "hsl(var(--muted))",
+                foreground: "hsl(var(--muted-foreground))",
+              },
+              accent: {
+                DEFAULT: "hsl(var(--accent))",
+                foreground: "hsl(var(--accent-foreground))",
+              },
+              popover: {
+                DEFAULT: "hsl(var(--popover))",
+                foreground: "hsl(var(--popover-foreground))",
+              },
+              card: {
+                DEFAULT: "hsl(var(--card))",
+                foreground: "hsl(var(--card-foreground))",
+              },
+            },
+            borderRadius: {
+              lg: "var(--radius)",
+              md: "calc(var(--radius) - 2px)",
+              sm: "calc(var(--radius) - 4px)",
+            },
+          },
+        },
+      }
+    </script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <style>
+      :root {
+        --background: 0 0% 100%;
+        --foreground: 222.2 47.4% 11.2%;
+        --muted: 210 40% 96.1%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222.2 47.4% 11.2%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 47.4% 11.2%;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --primary: 222.2 47.4% 11.2%;
+        --primary-foreground: 210 40% 98%;
+        --secondary: 210 40% 96.1%;
+        --secondary-foreground: 222.2 47.4% 11.2%;
+        --accent: 210 40% 96.1%;
+        --accent-foreground: 222.2 47.4% 11.2%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
+        --ring: 215 20.2% 65.1%;
+        --radius: 0.75rem;
+      }
+
+      * {
+        border-color: hsl(var(--border));
+      }
+    </style>
+</head>
+<body class="bg-background text-foreground min-h-screen font-sans">
+    <div class="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-4 py-10">
+        <div class="flex items-center gap-3 text-sm text-muted-foreground">
+            <a href="/" class="inline-flex items-center gap-2 rounded-md border border-transparent px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+                <span aria-hidden="true">&larr;</span>
+                Back to uploads
+            </a>
+            <span>/</span>
+            <span class="text-foreground">Job {{.Job.ID}}</span>
+        </div>
+
+        <header class="space-y-2">
+            <h1 class="text-3xl font-semibold tracking-tight">Job {{.Job.ID}}</h1>
+            <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <span>Status:</span>
+                <span class="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">{{.Job.Status}}</span>
+                {{if .Job.TranscriptionRequested}}
+                    <span class="inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">Transcription requested</span>
+                {{end}}
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+                <form action="/jobs/{{.Job.ID}}/delete" method="post" class="inline-flex items-center gap-2"
+                    onsubmit="return confirm('Delete this job and all generated files?')">
+                    <button type="submit"
+                        class="inline-flex h-9 items-center justify-center rounded-md border border-destructive/40 bg-destructive/10 px-3 text-sm font-medium text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2 focus-visible:ring-offset-background {{if .DeleteDisabled}}opacity-50 cursor-not-allowed hover:bg-destructive/80 hover:text-destructive{{end}}"
+                        {{if .DeleteDisabled}}disabled aria-disabled="true"{{end}}>
+                        Delete job
+                    </button>
+                </form>
+                {{if .DeleteDisabled}}
+                    <span class="text-xs text-muted-foreground">{{.DeleteReason}}</span>
+                {{end}}
+            </div>
+        </header>
+
+        <section class="grid gap-6 rounded-lg border bg-card p-6 text-card-foreground shadow-sm md:grid-cols-2">
+            <div class="space-y-3">
+                <h2 class="text-lg font-semibold">Job details</h2>
+                <dl class="space-y-2 text-sm">
+                    <div class="flex flex-col">
+                        <dt class="text-muted-foreground">Original file</dt>
+                        <dd>
+                            <a href="/files/jobs/{{.Job.ID}}/{{.Job.OriginalVideoPath}}" download class="text-sm font-medium text-primary hover:underline">{{.Job.OriginalFileName}}</a>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-muted-foreground">Created</dt>
+                        <dd>{{.Job.CreatedAt.Format "2006-01-02 15:04"}}</dd>
+                    </div>
+                    {{if .Job.CompletedAt}}
+                    <div>
+                        <dt class="text-muted-foreground">Completed</dt>
+                        <dd>{{.Job.CompletedAt.Format "2006-01-02 15:04"}}</dd>
+                    </div>
+                    {{end}}
+                    <div>
+                        <dt class="text-muted-foreground">Chunk length</dt>
+                        <dd>{{.HumanChunk}} ({{.Job.ChunkDurationSeconds}} seconds)</dd>
+                    </div>
+                </dl>
+            </div>
+            <div class="space-y-3">
+                <h2 class="text-lg font-semibold">Status</h2>
+                {{if eq .Job.Status "failed"}}
+                    <div class="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                        <p class="font-medium">Processing failed</p>
+                        <p class="text-xs leading-relaxed">{{.Job.ErrorMessage}}</p>
+                    </div>
+                {{else}}
+                    <div class="rounded-md border border-muted bg-muted/40 p-3 text-sm text-muted-foreground">
+                        Processing complete. Review the generated artefacts below.
+                    </div>
+                {{end}}
+            </div>
+        </section>
+
+        <section class="rounded-lg border bg-card text-card-foreground shadow-sm">
+            <div class="space-y-4 p-6">
+                <div class="space-y-1">
+                    <h2 class="text-xl font-semibold">Chunks ({{len .Job.Chunks}})</h2>
+                    <p class="text-sm text-muted-foreground">Each chunk includes playback, downloads, and optional transcripts.</p>
+                </div>
+                <div class="rounded-lg border border-muted bg-muted/40 p-4 text-sm text-muted-foreground">
+                    <div class="flex flex-wrap gap-4">
+                        <div><span class="font-medium text-foreground">Chunk duration:</span> {{.HumanChunk}}</div>
+                        {{if .HasDuration}}
+                        <div><span class="font-medium text-foreground">Total audio length:</span> {{formatSeconds .TotalDuration}}</div>
+                        {{end}}
+                    </div>
+                    {{if .ChunkWarning}}
+                    <div class="mt-3 rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-destructive">
+                        {{.ChunkWarning}}
+                    </div>
+                    {{else}}
+                    <div class="mt-3 text-xs">Need more slices? Upload again with a smaller chunk duration.</div>
+                    {{end}}
+                </div>
+                {{if not .Job.Chunks}}
+                    <div class="rounded-lg border border-dashed border-muted bg-muted/40 p-6 text-sm text-muted-foreground">
+                        No audio chunks generated.
+                    </div>
+                {{else}}
+                    <div class="overflow-x-auto">
+                        <table class="w-full caption-bottom text-sm">
+                            <thead class="[&_th]:h-10 [&_th]:px-4 [&_th]:text-left [&_th]:align-middle">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Range</th>
+                                    <th>Audio</th>
+                                    {{if .Base64Enabled}}<th>Base64 dump</th>{{end}}
+                                    <th>Transcript</th>
+                                </tr>
+                            </thead>
+                            <tbody class="[&_td]:border-t [&_td]:border-border [&_td]:align-top [&_td]:px-4 [&_td]:py-4">
+                                {{range .Job.Chunks}}
+                                <tr class="hover:bg-muted/50">
+                                    <td class="font-medium">{{.Index}}</td>
+                                    <td class="whitespace-nowrap text-sm text-muted-foreground">{{formatSeconds .StartSeconds}} to {{formatSeconds (add .StartSeconds .DurationSeconds)}}</td>
+                                    <td class="space-y-2">
+                                        <audio controls preload="none" src="/files/jobs/{{$.Job.ID}}/{{.AudioFile}}" class="w-full rounded-md border"></audio>
+                                        <div class="text-xs text-muted-foreground">
+                                            <a href="/files/jobs/{{$.Job.ID}}/{{.AudioFile}}" download class="font-medium text-primary hover:underline">Download chunk</a>
+                                        </div>
+                                    </td>
+                                    {{if $.Base64Enabled}}
+                                    <td class="text-sm">
+                                        {{if .Base64File}}
+                                            <a href="/files/jobs/{{$.Job.ID}}/{{.Base64File}}" target="_blank" class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Open text</a>
+                                        {{else}}
+                                            <span class="text-muted-foreground">Disabled</span>
+                                        {{end}}
+                                    </td>
+                                    {{end}}
+                                    <td class="text-sm leading-relaxed">
+                                        {{if .TranscriptFile}}
+                                            <div class="whitespace-pre-line text-sm">{{.TranscriptPreview}}</div>
+                                            <div class="pt-2 text-xs text-muted-foreground"><a href="/files/jobs/{{$.Job.ID}}/{{.TranscriptFile}}" target="_blank" class="inline-flex items-center font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">Open full text</a></div>
+                                        {{else}}
+                                            {{if .TranscriptPreview}}
+                                                <div class="text-destructive">{{.TranscriptPreview}}</div>
+                                            {{else}}
+                                                <span class="text-muted-foreground">No transcript</span>
+                                            {{end}}
+                                        {{end}}
+                                    </td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                {{end}}
+            </div>
+        </section>
+
+        <section class="rounded-lg border bg-card text-card-foreground shadow-sm">
+            <div class="space-y-4 p-6">
+                <h2 class="text-xl font-semibold">Processing log</h2>
+                {{if .Job.ProcessingLog}}
+                    <details open class="rounded-lg border bg-background">
+                        <summary class="cursor-pointer select-none px-4 py-3 text-sm font-medium text-muted-foreground">Show log</summary>
+                        <pre class="overflow-x-auto whitespace-pre-wrap px-4 pb-4 text-sm leading-relaxed text-muted-foreground">{{.Job.ProcessingLog}}</pre>
+                    </details>
+                {{else}}
+                    <div class="rounded-lg border border-dashed border-muted bg-muted/40 p-6 text-sm text-muted-foreground">
+                        No log captured.
+                    </div>
+                {{end}}
+            </div>
+        </section>
+    </div>
+</body>
+</html>
+{{end}}
