@@ -2,8 +2,9 @@
 
 A lightweight Go web service that accepts a video upload, slices it into audio chunks, optionally transcribes each chunk, and exposes every artefact (audio files, Base64 dumps, transcripts, logs) for easy review and copy/paste into tools such as ChatGPT or Gemini.
 
-<img width="987" height="571" alt="Screenshot 2025-09-22 at 09 38 00" src="https://github.com/user-attachments/assets/d4ed4fe7-a00a-4578-85ff-ee2781f2e787" />
-<img width="1061" height="1302" alt="Screenshot 2025-09-22 at 09 38 57" src="https://github.com/user-attachments/assets/39ac1dc5-dfb9-4417-9dee-a5e81b562f89" />
+| Landig page | After processing | 
+|----------|----------|
+| <img width="1061" alt="Screenshot 2025-09-22 at 09 38 00" src="https://github.com/user-attachments/assets/d4ed4fe7-a00a-4578-85ff-ee2781f2e787" />  | <img width="1061" alt="Screenshot 2025-09-22 at 09 38 57" src="https://github.com/user-attachments/assets/39ac1dc5-dfb9-4417-9dee-a5e81b562f89" />  | 
 
 
 ## Features
